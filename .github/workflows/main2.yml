@@ -1,0 +1,25 @@
+name: PushGitlab
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+      with: 
+        fetch-depth: 0
+      
+    - name: Push To Gitlab
+      env: 
+        target-url: ${{ secrets.TARGET_URL }}
+        target-username: ${{ secrets.TARGET_USERNAME }}
+        target-token: ${{ secrets.TARGET_TOKEN }}
+      run: |
+        echo Starting to push repo to gitlab
+        git config user.name "kangarooaifr"
+        git remote set-url origin "https://oauth2:${target-token}@gitlab.com/{target-username}/shiny-cicd-aws-scenario.git"
+        git push origin master
