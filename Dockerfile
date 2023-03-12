@@ -78,11 +78,8 @@ WORKDIR /home/shiny
 ## global.R ui.R server.R ...
 RUN mkdir -p /srv/shiny-server/${APP_NAME}
 
-COPY ui.R /srv/shiny-server/${APP_NAME}
-#COPY shinapp/server.R /srv/shiny-server/${APP_NAME}
-
-RUN cp ./shinapp /srv/shiny-server/${APP_NAME}
-
+#COPY ui.R /srv/shiny-server/${APP_NAME}
+COPY shinyapp /srv/shiny-server/${APP_NAME}
 
 RUN chown -R shiny.root /srv/shiny-server
 
