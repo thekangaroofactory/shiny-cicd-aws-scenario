@@ -26,5 +26,7 @@ before_script:
 build:
   stage: build
   script:
-    - docker build -t my-docker-image .
-    - docker run my-docker-image /script/to/run/tests
+    #- docker build -t my-docker-image .
+    - docker build -t registry.gitlab.com/kangarooaifr/shiny-cicd-aws-scenario .
+    - docker push registry.gitlab.com/kangarooaifr/shiny-cicd-aws-scenario
+    #- docker run my-docker-image /script/to/run/tests
