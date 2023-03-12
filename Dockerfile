@@ -17,6 +17,9 @@ wget
 ENV CONTAINER_TIMEZONE Europe/Paris
 ENV TZ Europe/Paris
 
+# -- kangaroo: adding this to update locales (fixing echo "fr_FR.UTF-8 UTF-8" ...)
+RUN sudo locale-gen fr_FR.UTF8
+
 RUN sudo echo "Europe/Paris" > /etc/timezone
 RUN echo "fr_FR.UTF-8 UTF-8" >> /etc/locale.gen \
   && locale-gen fr_FR.UTF8 \
