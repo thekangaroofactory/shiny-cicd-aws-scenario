@@ -8,7 +8,7 @@ RUN apt-get update && apt-get install -y \
     sudo \
     gdebi-core \
     pandoc \
-    pandoc-citeproc \
+    #pandoc-citeproc \
     libcurl4-gnutls-dev \
     libssl-dev \
     libpq-dev \
