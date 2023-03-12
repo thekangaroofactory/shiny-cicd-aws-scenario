@@ -77,8 +77,8 @@ WORKDIR /home/shiny
 ## Add here files and directory necessary for the app.
 ## global.R ui.R server.R ...
 RUN mkdir -p /srv/shiny-server/${APP_NAME}
-COPY /shinapp/ui.R /srv/shiny-server/${APP_NAME}
-COPY /shinapp/server.R /srv/shiny-server/${APP_NAME}
+COPY shinapp/ui.R /srv/shiny-server/${APP_NAME}
+COPY shinapp/server.R /srv/shiny-server/${APP_NAME}
 
 RUN chown -R shiny.root /srv/shiny-server
 
