@@ -80,7 +80,9 @@ RUN mkdir -p /srv/shiny-server/${APP_NAME}
 
 COPY ui.R /srv/shiny-server/${APP_NAME}
 #COPY shinapp/server.R /srv/shiny-server/${APP_NAME}
+
 RUN cp ./shinapp /srv/shiny-server/${APP_NAME}
+
 
 RUN chown -R shiny.root /srv/shiny-server
 
