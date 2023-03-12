@@ -1,2 +1,2 @@
 
-check_github_action <- "OK"
+check_github_action <- "OK_"
