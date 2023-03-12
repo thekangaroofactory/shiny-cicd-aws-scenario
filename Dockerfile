@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y \
     libgit2-dev \
     libglib2.0-dev/unstable \
     libgsl-dev \
-    #lsb_release \
+    lsb_release \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/*
 
