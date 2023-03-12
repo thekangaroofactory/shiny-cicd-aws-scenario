@@ -1,125 +1,30 @@
-## Two stages
-# first to build docker image
-# second to deploy in a server
-stages: 
-  - build_img
-  - deploy
+image: docker:20.10.16
 
-## Build docker image of the R shiny app
-## using DockerFile and register it in the 
-## docker registry of the project
-buildImageDocker:
-  tags:
-    - "dind"
-    - "docker"
-    - "tls"
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-    R_DOCKER_TAG: 'cat renv.lock | grep "Version" - | grep -o "[0-9\.]*" - | head -n 1'
-    R_DOCKER_IMAGE: "r-base"
+variables:
+  # When you use the dind service, you must instruct Docker to talk with
+  # the daemon started inside of the service. The daemon is available
+  # with a network connection instead of the default
+  # /var/run/docker.sock socket. Docker 19.03 does this automatically
+  # by setting the DOCKER_HOST in
+  # https://github.com/docker-library/docker/blob/d45051476babc297257df490d22cbd806f1b11e4/19.03/docker-entrypoint.sh#L23-L29
+  #
+  # The 'docker' hostname is the alias of the service container as described at
+  # https://docs.gitlab.com/ee/ci/services/#accessing-the-services.
+  #
+  # Specify to Docker where to create the certificates. Docker
+  # creates them automatically on boot, and creates
+  # `/certs/client` to share between the service and job
+  # container, thanks to volume mount from config.toml
+  DOCKER_TLS_CERTDIR: "/certs"
 
-  services:
-    - docker:20.10.12-dind
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  stage: build_img
+services:
+  - docker:20.10.16-dind
+
+before_script:
+  - docker info
+
+build:
+  stage: build
   script:
-    - docker pull $CI_REGISTRY_IMAGE:latest || true
-    - docker build --build-arg APP_NAME=$CI_PROJECT_NAME --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest -f Dockerfile.multi .
-      #- docker build --build-arg APP_NAME=$CI_PROJECT_NAME --build-arg APP_VERSION="V-$CI_COMMIT_SHORT_SHA" --build-arg AUTHOR="$CI_COMMIT_AUTHOR" --build-arg R_IMAGE=$R_DOCKER_IMAGE:$(eval $R_DOCKER_TAG)  --cache-from $CI_REGISTRY_IMAGE:latest --tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE:latest -f Dockerfile.simple.renv.shiny .
-    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE:latest
-  after_script:
-    - docker logout $CI_REGISTRY
-
-## Retag this commit to latest tag
-## kind of rollback
-retag:
-  tags:
-    - "dind"
-    - "docker"
-    - "tls"
-  stage: build_img
-  when: manual
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-  services:
-    - docker:20.10.12-dind
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  after_script:
-    - docker logout $CI_REGISTRY
-  script:
-    - docker pull $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA || true
-    - docker tag $CI_REGISTRY_IMAGE:$CI_COMMIT_SHA $CI_REGISTRY_IMAGE:latest
-    - docker push $CI_REGISTRY_IMAGE:latest
-
-## Deploy image on a server
-## Secret Variables:
-## DEPLOY_USER : user ID that have access to the server
-## DEPLOY_PWD : user password
-## DEPLOY_IP : server IP to deploy to
-# deploy:
-#   image: debian:stable
-#   stage: deploy
-#   when: manual
-#   only:
-#     - master
-#   environment:
-#     name: shinyproxy
-#     url: https://myShinyServer/
-#   before_script:
-#     - apt-get update && apt-get install -y sshpass openssh-client
-#     - export SSHPASS=$DEPLOY_PWD
-#   script:
-#     - sshpass -e ssh -o StrictHostKeyChecking=no $DEPLOY_USER@$DEPLOY_IP
-#       "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY_IMAGE;
-#       docker pull $CI_REGISTRY_IMAGE:latest;
-#       docker logout $CI_REGISTRY_IMAGE;"
-
-## Deploy as a service on a server
-## specific runner
-# deploy-standalone:
-#   tags:
-#     - "myprodserver"
-#     - "deploy"
-#     - "prod"
-#   image: docker:20.10.12
-#   stage: deploy
-#   only:
-#     - master
-#   when: manual
-#   environment:
-#     name: shiny.website.org
-#   before_script:
-#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#   script:
-#     - docker-compose up -d -f myApp-compose.yml
-#   after_script:
-#     - docker logout $CI_REGISTRY
-
-## Deploy as a stack on a docker swarm server using a local registry
-## specific runner
-# deploy-swarm:
-#   tags:
-#     - "myswarmprodserver"
-#     - "deploy"
-#     - "prod"
-#   image: docker:20.10.12
-#   stage: deploy
-#   only:
-#     - master
-#   when: manual
-#   environment:
-#     name: shiny.website.org
-#   before_script:
-#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#   script:
-#     - docker pull $CI_REGISTRY_IMAGE/$CI_PROJECT_NAME:latest
-#     - docker tag $CI_REGISTRY_IMAGE/$CI_PROJECT_NAME:latest 127.0.0.1:5000/$CI_PROJECT_NAME:latest
-#     - docker push 127.0.0.1:5000/$CI_PROJECT_NAME:latest
-#     - docker image rm $CI_REGISTRY_IMAGE/$CI_PROJECT_NAME:latest
-#     - docker stack deploy -c myApp-stack.yml --with-registry-auth myApp-stack
-#   after_script:
-#     - docker logout $CI_REGISTRY
-
+    - docker build -t my-docker-image .
+    - docker run my-docker-image /script/to/run/tests
