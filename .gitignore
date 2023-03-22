@@ -2,3 +2,5 @@
 .Rhistory
 .RData
 .Ruserdata
+secrets.txt
+shiny-cicd-template.excalidraw
