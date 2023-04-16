@@ -1,7 +1,8 @@
 {
-  "AWSEBDockerrunVersion": 2,
+  "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "$CI_REGISTRY_IMAGE:$APP_VERSION"
+    "Name": "$CI_REGISTRY_IMAGE:$APP_VERSION",
+    "Update": "true"
   },
   "Authentication": {
     "Bucket":"$AWS_S3_BUCKET",
@@ -9,7 +10,8 @@
   },
   "Ports": [
     {
-      "ContainerPort": 80
+      "hostPort": 8080,
+      "containerPort": 8080
     }
   ]
 }
