@@ -1,5 +1,5 @@
 {
-  "AWSEBDockerrunVersion": 3,
+  "AWSEBDockerrunVersion": 2,
   "Image": {
     "Name": "$CI_REGISTRY_IMAGE:$APP_VERSION"
   },
