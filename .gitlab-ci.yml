@@ -1,12 +1,10 @@
 
 stages:
   - build
+  - deploy
 
 variables:
   APP_VERSION: $CI_PIPELINE_IID
-
-before_script:
-  - docker info
 
 build docker image:
   stage: build
@@ -18,3 +16,11 @@ build docker image:
     - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION .
     - docker image ls
     - docker push --all-tags $CI_REGISTRY_IMAGE
+
+deploy to s3:
+  stage: deploy
+  image:
+    name: amazon/aws-cli:2.11.13
+    entrypoint: [""]
+  script:
+    - aws --version
