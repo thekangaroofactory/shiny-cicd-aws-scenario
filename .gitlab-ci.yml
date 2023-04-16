@@ -27,7 +27,7 @@ deploy to s3:
     ENV_NAME: Myshinyapp-env
   script:
     - aws --version
-    - yum install gettext
+    - yum install -y gettext
     - envsubst < templates/Dockerrun.aws.json > Dockerrun.aws.json
     - envsubst < templates/auth.json > auth.json
     - export DEPLOY_TOKEN=$(echo $GITLAB_DEPLOY_TOKEN | tr -d "\n" | base64)
