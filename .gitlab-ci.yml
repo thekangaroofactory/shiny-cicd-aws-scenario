@@ -23,8 +23,8 @@ deploy to s3:
     name: amazon/aws-cli:2.11.13
     entrypoint: [""]
   variables:
-    APP_NAME: myshinyapp
-    ENV_NAME: Myshinyapp-env
+    APP_NAME: shinyapp
+    ENV_NAME: Shinyapp-env
   script:
     - aws --version
     - yum install -y gettext
