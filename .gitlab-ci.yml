@@ -1,32 +1,38 @@
-image: docker:20.10.16
+
+stages:
+  - build
+  - deploy
 
 variables:
-  # When you use the dind service, you must instruct Docker to talk with
-  # the daemon started inside of the service. The daemon is available
-  # with a network connection instead of the default
-  # /var/run/docker.sock socket. Docker 19.03 does this automatically
-  # by setting the DOCKER_HOST in
-  # https://github.com/docker-library/docker/blob/d45051476babc297257df490d22cbd806f1b11e4/19.03/docker-entrypoint.sh#L23-L29
-  #
-  # The 'docker' hostname is the alias of the service container as described at
-  # https://docs.gitlab.com/ee/ci/services/#accessing-the-services.
-  #
-  # Specify to Docker where to create the certificates. Docker
-  # creates them automatically on boot, and creates
-  # `/certs/client` to share between the service and job
-  # container, thanks to volume mount from config.toml
-  DOCKER_TLS_CERTDIR: "/certs"
+  APP_VERSION: $CI_PIPELINE_IID
 
-services:
-  - docker:20.10.16-dind
-
-before_script:
-  - docker info
-
-build:
+build docker image:
   stage: build
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
   script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - docker build -t registry.gitlab.com/thekangaroofactory/shiny-cicd-aws-scenario .
-    - docker push registry.gitlab.com/thekangaroofactory/shiny-cicd-aws-scenario
+    - echo $CI_REGISTRY_PASSWORD | docker login -u $CI_REGISTRY_USER $CI_REGISTRY --password-stdin
+    - docker build -t $CI_REGISTRY_IMAGE -t $CI_REGISTRY_IMAGE:$APP_VERSION .
+    - docker image ls
+    - docker push --all-tags $CI_REGISTRY_IMAGE
+
+deploy to s3:
+  stage: deploy
+  image:
+    name: amazon/aws-cli:2.11.13
+    entrypoint: [""]
+  variables:
+    APP_NAME: shinyapp
+    ENV_NAME: Shinyapp-env
+  script:
+    - aws --version
+    - yum install -y gettext
+    - envsubst < templates/Dockerrun.aws.json > Dockerrun.aws.json
+    - envsubst < templates/auth.json > auth.json
+    - export DEPLOY_TOKEN=$(echo $GITLAB_DEPLOY_TOKEN | tr -d "\n" | base64)
+    - aws s3 cp Dockerrun.aws.json s3://$AWS_S3_BUCKET/Dockerrun.aws.json
+    - aws s3 cp auth.json s3://$AWS_S3_BUCKET/auth.json
+    - aws elasticbeanstalk create-application-version --application-name $APP_NAME --version-label $APP_VERSION --source-bundle S3Bucket=$AWS_S3_BUCKET,S3Key=Dockerrun.aws.json
+    - aws elasticbeanstalk update-environment --application-name $APP_NAME --version-label $APP_VERSION --environment-name $ENV_NAME
     
