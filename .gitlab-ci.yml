@@ -27,8 +27,12 @@ deploy to s3:
     ENV_NAME: Myshinyapp-env
   script:
     - aws --version
+    - yum install gettext
+    - envsubst < templates/Dockerrun.aws.json > Dockerrun.aws.json
+    - envsubst < templates/auth.json > auth.json
     - export DEPLOY_TOKEN=$(echo $GITLAB_DEPLOY_TOKEN | tr -d "\n" | base64)
     - aws s3 cp Dockerrun.aws.json s3://$AWS_S3_BUCKET/Dockerrun.aws.json
     - aws s3 cp auth.json s3://$AWS_S3_BUCKET/auth.json
     - aws elasticbeanstalk create-application-version --application-name $APP_NAME --version-label $APP_VERSION --source-bundle S3Bucket=$AWS_S3_BUCKET,S3Key=Dockerrun.aws.json
     - aws elasticbeanstalk update-environment --application-name $APP_NAME --version-label $APP_VERSION --environment-name $ENV_NAME
+    
